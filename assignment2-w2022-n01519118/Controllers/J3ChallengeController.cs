@@ -21,18 +21,17 @@ namespace assignment2_w2022_n01519118.Controllers
     /// </summary>
     public class J3ChallengeController : ApiController
     {
-  
-        Random GLOBALRANDOM = new Random();
+        //global random number generator
+        Random GLOBALRANDOM = new Random(); //tried to create as global function but each call is like a
        
 
         /// <summary>
         /// This function is going to be called each round for each player to roll a dice.
         /// </summary>
         /// <returns>random number between 1 and 6</returns>
-        public int ThrowDice(int index)
+        public int ThrowDice()
         {
             //Random random = new Random(); // this was generating duplicate numbers due to random seed being the same.
-            // Then I created another random seed to another random seed. It didn`t work
             return GLOBALRANDOM.Next(1,6);
         }
         /// <summary>
@@ -94,32 +93,46 @@ namespace assignment2_w2022_n01519118.Controllers
             return playersPoint;
         }
         /// <summary>
-        /// This functions Calls each other functions and makes a game round.
+        /// This functions Calls other functions and makes a game round.
         /// Each round is composed of:
         ///     Players roll dices
         ///     Compare dice results
         ///     Subtract points
+        ///     generate log message
         /// </summary>
-        /// <param name="players"></param>
-        /// <returns>updated players dictionary with current points and round log message</returns>
+        /// <param name="newPlayersPoints"></param>
+        /// <param name="roundLog"></param>
+        /// <returns name="newPlayersPoints">updated players dictionary with current points</returns>
+        /// <returns name="roundLog">string with info about what happened this round</returns>
         public void Round(Dictionary<string, int> players, int roundNumber, out Dictionary<string, int> newPlayersPoints, out string roundLog)
         {
             string message = "";
             List<int> rolledDice = new List<int>();
             for (int i = 0; i < players.Count; i++)
             {
-                rolledDice.Add(ThrowDice(i));
+                rolledDice.Add(ThrowDice()); //PLayers roll dices
             }
-            int[] pointsLost = CheckGameRules(rolledDice);
-            int[] newPoints = SubtractPoint(players.Values.ToArray<int>(), pointsLost);
-            for (int i = 0; i < players.Count; i++)
+            int[] pointsLost = CheckGameRules(rolledDice); //compare dice results
+            int[] newPoints = SubtractPoint(players.Values.ToArray<int>(), pointsLost);//subtract points
+            for (int i = 0; i < players.Count; i++) //log message
             {
                 players[players.ElementAt(i).Key] = newPoints[i];
-                message += "| " + players.ElementAt(i).Key + " " + rolledDice.ElementAt(i);
+                message += "("+players.ElementAt(i).Key + " " + rolledDice.ElementAt(i)+") ";
             }
             newPlayersPoints = players;
             roundLog = "Round" + roundNumber + ": " + message+" .";
 
+        }
+
+        public string CurrentPointsMessage(Dictionary<string, int> playersPoints)
+        {
+            string message = "";
+            foreach(string player in playersPoints.Keys)
+            {
+                message += player + " " + playersPoints[player]+ "|";
+            }
+
+            return message;
         }
 
         /// <summary>
@@ -146,14 +159,19 @@ namespace assignment2_w2022_n01519118.Controllers
         [Route("api/J3ChallengeController/{numPlayers}/{points}/{round}")]
         public string Get(int numPlayers, int points, int round)
         {
-            string resultMessage = ""; //will contain the result of each round
+            string finalMessage = ""; //will contain the result of all rounds + ramaining points
+            string roundLog = ""; //will contain the result of each round
             Dictionary<string, int> playersPoints = GameSetup(numPlayers, points);//create a dictionary which will hold player (key) points(value)
             
-            Round(playersPoints,1, out playersPoints,out resultMessage); //runs a game round -> updated players points on return
+            for(int i = 0; i < round; i++)
+            {
+                Round(playersPoints, (i+1), out playersPoints, out roundLog); //runs a game round -> updated players points on return
+                finalMessage += roundLog+"///////";
+            }
+            finalMessage += "Total Points: " + CurrentPointsMessage(playersPoints);
 
 
-
-            return resultMessage;
+            return finalMessage;
         }
 
     }
