@@ -16,9 +16,8 @@ namespace assignment2_w2022_n01519118.Controllers
     /// rolls one die.The player with the lower roll loses the number of points shown on the higher die.If
     /// both players roll the same number, no points are lost by either player.
     /// Write a program to determine the final scores.
-    /// 
-    /// 
     /// </summary>
+    /// Upgrade Proposal 1) Use a global dictionary players instead of passing one for each function which needs it.
     public class J3ChallengeController : ApiController
     {
         //global random number generator
@@ -154,6 +153,7 @@ namespace assignment2_w2022_n01519118.Controllers
         /// <param name="health"></param>
         /// <param name="round"></param>
         /// <returns></returns>
+       
 
         [HttpGet]
         [Route("api/J3ChallengeController/{numPlayers}/{points}/{round}")]
